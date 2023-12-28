@@ -1,40 +1,133 @@
-<script setup>
-import { ref } from 'vue'
-
-defineProps({
-  msg: String,
-})
-
-const count = ref(0)
-</script>
-
 <template>
-  <h1>{{ msg }}</h1>
+  <div>
+    <div class="_reg">
+      <div class="_reg2">
+        <!-- Your image and title -->
+        <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yZ/r/C6QZ-pcv3Bd.png" alt="" width="24" height="24" id="x_sign" />
+        <div class="sign_up">
+          <div class="sign_up2">Sign Up</div>
+        </div>
 
-  <div class="card">
-    <button type="button" @click="count++">count is {{ count }}</button>
-    <p>
-      Edit
-      <code>components/HelloWorld.vue</code> to test HMR
-    </p>
+        <!-- Your form -->
+        <form @submit.prevent="submitForm" method="post" id="reg">
+          <!-- First name and Last name -->
+          <div>
+            <input type="text" v-model="formData.firstName" placeholder="First Name"/>
+          </div>
+          <div>
+            <input type="text" v-model="formData.lastName" placeholder="Last Name" />
+          </div>
+
+          <!-- Email -->
+          <div>
+            <input type="text" v-model="formData.email" placeholder="Email" />
+          </div>
+
+          <!-- Password -->
+          <div>
+            <input type="password" v-model="formData.password" placeholder="Password" />
+          </div>
+
+          <!-- Confirm Password -->
+          <div>
+            <input type="password" v-model="formData.confirm_pswd" placeholder="Confirm Password" />
+          </div>
+
+          <!-- Birthday -->
+          <div>
+            <div>Birthday</div>
+            <div>
+              <label for="birthdayMonth">Month:</label>
+              <select id="birthdayMonth" name="birthday_month" title="Month" v-model="formData.birthdayMonth">
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+
+              <label for="birthdayDay">Day:</label>
+              <select id="birthdayDay" name="birthday_day" title="Day" v-model="formData.birthdayDay">
+                <option v-for="day in 31" :key="day" :value="day">{{ day }}</option>
+              </select>
+
+              <label for="birthdayYear">Year:</label>
+              <select id="birthdayYear" name="birthday_year" title="Year" v-model="formData.birthdayYear">
+                <!-- Add your year options here -->
+                <option v-for="year in years.slice().reverse()" :key="year" :value="year">{{ year }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Gender -->
+          <!-- Gender -->
+          <div>
+            <div>Gender</div>
+            <div>
+              <label>
+                <input type="radio" name="gender" value="female" v-model="formData.gender" />
+                Female
+              </label>
+
+              <label>
+                <input type="radio" name="gender" value="male" v-model="formData.gender" />
+                Male
+              </label>
+
+              <label>
+                <input type="radio" name="gender" value="other" v-model="formData.gender" />
+                Other
+              </label>
+            </div>
+          </div>
+
+          <!-- Sign Up button -->
+          <div class="">
+            <button type="submit">Sign Up</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
-
-  <p>
-    Check out
-    <a href="https://vuejs.org/guide/quick-start.html#local" target="_blank"
-      >create-vue</a
-    >, the official Vue + Vite starter
-  </p>
-  <p>
-    Install
-    <a href="https://github.com/vuejs/language-tools" target="_blank">Volar</a>
-    in your IDE for a better DX
-  </p>
-  <p class="read-the-docs">Click on the Vite and Vue logos to learn more</p>
 </template>
 
+<script>
+export default {
+  data() {
+    const currentYear = new Date().getFullYear();
+    const startYear = 1920;
+    const years = Array.from({ length: currentYear - startYear + 1 }, (_, index) => (startYear + index).toString());
+
+    return {
+      formData: {
+        firstName: '',
+        lastName: '',
+        email: '',
+        password: '',
+        birthdayMonth: '',
+        birthdayDay: '',
+        birthdayYear: '',
+        gender: ''
+      },
+      years: years
+    };
+  },
+  methods: {
+    submitForm() {
+      // Handle form submission here
+      console.log('Form data submitted:', this.formData);
+    }
+  }
+};
+</script>
+
 <style scoped>
-.read-the-docs {
-  color: #888;
-}
+/* Add your component-specific styles here */
 </style>

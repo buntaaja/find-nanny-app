@@ -1,2 +1,8 @@
-Flask == 3.0.0
-Flask-Cors == 4.0.0
+flask
+flask-cors
+flask-login
+flask_sqlalchemy
+flask_wtf
+passlib.hash
+wtforms
+wtforms.validators
