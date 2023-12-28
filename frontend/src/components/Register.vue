@@ -12,25 +12,25 @@
         <form @submit.prevent="submitForm" method="post" id="reg">
           <!-- First name and Last name -->
           <div>
-            <input type="text" v-model="formData.firstName" placeholder="First Name"/>
+            <input type="text" name="firstName" v-model="formData.firstName" placeholder="First Name"/>
           </div>
           <div>
-            <input type="text" v-model="formData.lastName" placeholder="Last Name" />
+            <input type="text" name="lastName" v-model="formData.lastName" placeholder="Last Name" />
           </div>
 
           <!-- Email -->
           <div>
-            <input type="text" v-model="formData.email" placeholder="Email" />
+            <input type="text" name="email" v-model="formData.email" placeholder="Email" />
           </div>
 
           <!-- Password -->
           <div>
-            <input type="password" v-model="formData.password" placeholder="Password" />
+            <input type="password" name="password" v-model="formData.password" placeholder="Password" />
           </div>
 
           <!-- Confirm Password -->
           <div>
-            <input type="password" v-model="formData.confirm_pswd" placeholder="Confirm Password" />
+            <input type="password" name="confirm_pasword" v-model="formData.confirm_pswd" placeholder="Confirm Password" />
           </div>
 
           <!-- Birthday -->

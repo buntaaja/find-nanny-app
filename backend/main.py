@@ -32,87 +32,83 @@ class User(UserMixin, db.Model):
     __tablename__= "users"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(320), unique=True, nullable=False)
-    username = db.Column(db.String(25), unique=True, nullable=False)
+    firstName = db.Column(db.String(100), nullable=False)
+    lastName = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(30), nullable=False)
+    birthday_month = db.Column(db.Integer, nullable=False)  
+    birthday_day = db.Column(db.String(10), nullable=False)    
+    birthday_year = db.Column(db.Integer, nullable=False) 
+    gender = db.Column(db.String(10), nullable=False) 
 
-    def __init__(self, email, username, password):
+    def __init__(self, email, firstName, lastName, password, birthday_month, birthday_day, birthday_year, gender):
         self.email = email
-        self.username = username
+        self.firstName = firstName
+        self.lastName = lastName
         self.password = password
+        self.birthday_month = birthday_month
+        self.birthday_day = birthday_day
+        self.birthday_year = birthday_year
+        self.gender = gender
 
 def invalid_credentials(form, field):
-    email_entered = form.email.data
-    username_entered = form.username.data
-    password_entered = field.data
+    email_entered = request.form['email'] 
+    password_entered = request.form['password'] 
 
     # Check credentials are valid
-    user_object = User.query.filter_by(username=username_entered).first()
-    user_object_email = User.query.filter_by(email=email_entered).first()
-
-    if user_object is None or user_object_email is None:
-        raise ValidationError("Username or password is incorrect.")
-    elif not pbkdf2_sha256.verify(password_entered, user_object.password):
-        raise ValidationError("Username or password is incorrect")
-
-class RegistrationForm(FlaskForm):
-    username = StringField('username_label', 
-        validators=[InputRequired(message="Username required"),
-        Length(min=4, max=30, message="Username must be between 4 and 30 characters")])
-    email = StringField('email_label', validators=[InputRequired(message="Email required")])
-    password = PasswordField('password_label',
-        validators=[InputRequired(message="Password required"),
-        Length(min=4, max=30, message="Password must be between 4 and 30 characters")])
-    confirm_pswd = PasswordField('confirm_pswd_label',
-        validators=[InputRequired(message="Password required"),
-        EqualTo('password', message="Passwords must match")])
-    submit_button = SubmitField('Create')
+    user_object = User.query.filter_by(email=email_entered).first()
     
-    def validate_username(self, username):
-        user_object = User.query.filter_by(username=username.data).first()
-        if user_object:
-            raise ValidationError("Username already exists. Select different username.")
+    if user_object is None:
+        raise ValidationError("Email or password is incorrect.")
+    elif not pbkdf2_sha256.verify(password_entered, user_object.password):
+        raise ValidationError("Email or password is incorrect")
 
-    def validate_email(self, email):
-        user_object = User.query.filter_by(email=email.data).first()
-        if user_object: 
-            raise ValidationError("This email adress is already in use.")        
-
-class LoginForm(FlaskForm):
-    username_email = StringField('Username or Email', 
-        validators=[InputRequired(message="Username or email required")])
-    password = PasswordField('password_label',
-        validators=[InputRequired(message="Password required"),
-        invalid_credentials])
-    submit_button = SubmitField('Login')
-
+def validate_email(form):
+    email_entered = request.form['email'] 
+    user_object = User.query.filter_by(email=email_entered).first()
+    if user_object: 
+        raise ValidationError("This email adress is already in use.")        
 
 @login.user_loader
 def load_user(id):
-
-    # User.query.filter_by(id=id).first()
     return User.query.get(int(id))
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/", methods=['GET'])
 def index():
+    return render_template("index.html", form=reg_form)
 
-    reg_form = RegistrationForm()
+@app.route("/register", methods=['GET', 'POST'])
+def register():
+
+    if request.method == 'POST':
+        firstName = request.form['firstName'] # The name of the input in index.html
+        firstName = request.form['lastName'] 
+        email = request.form['email']
+        password = request.form['password']
+        confirm_pasword = request.form['confirm_pasword']
+        birthday_month = request.form['birthday_month']
+        birthday_day = request.form['birthday_day'] 
+        birthday_year = request.form['birthday_year']
+        gender = request.form['gender']
+
+        if customer == '' or dealer == '':
+            return render_template('index.html', message='Plase enter required fields')
 
     # Update DB if validation was successfull
     if reg_form.validate_on_submit():
         email = reg_form.email.data
-        username = reg_form.username.data
         password = reg_form.password.data
 
         # Hash password
         hashed_pswd = pbkdf2_sha256.hash(password) 
 
         # Add user to DB
-        user = User(email=email, username=username, password=hashed_pswd)
+        user = User(email=email, password=hashed_pswd)
         db.session.add(user)
         db.session.commit()
 
         flash('Registered succesfully. Please login.', 'success') 
         return redirect(url_for('login'))
+
     return render_template("index.html", form=reg_form)
 
 @app.route("/login", methods=['GET', 'POST'])
