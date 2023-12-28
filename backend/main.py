@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request, render_template
 from flask_cors import CORS
 from flask_login import LoginManager, login_user, current_user, login_required, logout_user, UserMixin
-from flask_sqlalchemy import SQLAlchemy, or_
+from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from passlib.hash import pbkdf2_sha256
 
@@ -67,29 +67,26 @@ def validate_email(email):
 def load_user(id):
     return User.query.get(int(id))
 
-@app.route("/", methods=['GET'])
-def index():
-    return render_template("index.html")
-
 @app.route("/register", methods=['GET', 'POST'])
 def register():
-
+    response_object = {'status':'success'}
     if request.method == 'POST':
-        firstName = request.form['firstName'] # The name of the input in index.html
-        lastName = request.form['lastName'] 
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        birthday_month = request.form['birthday_month']
-        birthday_day = request.form['birthday_day'] 
-        birthday_year = request.form['birthday_year']
-        gender = request.form['gender']
+        post_data = request.get_json()
+        firstName = post_data.get('firstName') # The name of the input in index.html
+        lastName = post_data.get('lastName')
+        email = post_data.get('email')
+        password = post_data.get('password')
+        confirm_password = post_data.get('confirm_password')
+        birthday_month = post_data.get('birthday_month')
+        birthday_day = post_data.get('birthday_day')
+        birthday_year = post_data.get('birthday_year')
+        gender = post_data.get('gender')
 
         if firstName == '' or lastName == '' or email == '' or password == '' or confirm_password == '' or birthday_month == '' or birthday_day == '' or birthday_year == '' or gender == '':
-            return render_template('register.html', message='Plase enter required fields')
-
+            response_object['message'] = "Plase enter required fields."
+            
         if not validate_email(email):
-            return render_template('login.html', message='Email or password is incorrect')
+            response_object['message'] = 'Email or password is incorrect'
 
         elif validate_email(email) and password == confirm_password and 30 >= len(password) >= 4:
             # Hash password
@@ -100,39 +97,30 @@ def register():
             db.session.add(user)
             db.session.commit()
 
-            flash('Registered succesfully. Please login.', 'success') 
-            return redirect(url_for('login'))
-
-    return render_template("register.html")
+            response_object['message'] = "Registered succesfully. Now you can log in."
+        return jsonify(response_object)
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
-
+    response_object = {'status':'success'}
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        post_data = request.get_json()
+        email = post_data.get('email')
+        password = post_data.get('password')
 
         user_object = valid_credentials(email, password)
     
         if not user_object:
-            return render_template('login.html', message='Email or password is incorrect')
+            response_object['message'] = 'Email or password is incorrect.'
         else:
             login_user(user_object)
-            return redirect(url_for('choose'))
-
-    return render_template("login.html")
+            response_object['message'] = 'Logged in.'
+        
+        return jsonify(response_object)
 
 @app.route("/logout", methods=['GET'])
 def logout():
     logout_user()
-    flash('You have logged out successfully', 'success')
-    return redirect(url_for('login'))
-
-@app.route("/choose", methods=['GET', 'POST'])
-#@login_required
-def choose():
-    return render_template('choose.html', username=current_user.username)
-
 
 if __name__ == "__main__":
     app.run(debug=True)

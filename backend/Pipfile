@@ -4,11 +4,15 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask = "==3.0.0"
+flask = "*"
 flask-cors = "*"
 flask-login = "*"
 flask-sqlalchemy = "*"
 flask-wtf = "*"
+passlib = "*"
+wtforms = "*"
+"wtforms.validators" = "*"
+psycopg2 = "*"
 
 [dev-packages]
 

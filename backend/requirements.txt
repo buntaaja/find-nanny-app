@@ -4,5 +4,4 @@ flask-login
 flask_sqlalchemy
 flask_wtf
 passlib
-wtforms
-wtforms.validators
+psycopg2
