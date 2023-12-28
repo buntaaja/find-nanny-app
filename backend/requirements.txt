@@ -3,6 +3,6 @@ flask-cors
 flask-login
 flask_sqlalchemy
 flask_wtf
-passlib.hash
+passlib
 wtforms
 wtforms.validators

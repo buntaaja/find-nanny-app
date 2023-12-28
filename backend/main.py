@@ -4,8 +4,6 @@ from flask_login import LoginManager, login_user, current_user, login_required, 
 from flask_sqlalchemy import SQLAlchemy, or_
 from flask_wtf import FlaskForm
 from passlib.hash import pbkdf2_sha256
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import InputRequired, Length, EqualTo, ValidationError
 
 app = Flask(__name__)
 
@@ -50,23 +48,20 @@ class User(UserMixin, db.Model):
         self.birthday_year = birthday_year
         self.gender = gender
 
-def invalid_credentials(form, field):
-    email_entered = request.form['email'] 
-    password_entered = request.form['password'] 
-
+def valid_credentials(email, password):
     # Check credentials are valid
-    user_object = User.query.filter_by(email=email_entered).first()
-    
-    if user_object is None:
-        raise ValidationError("Email or password is incorrect.")
-    elif not pbkdf2_sha256.verify(password_entered, user_object.password):
-        raise ValidationError("Email or password is incorrect")
+    user_object = User.query.filter_by(email=email).first()
 
-def validate_email(form):
-    email_entered = request.form['email'] 
-    user_object = User.query.filter_by(email=email_entered).first()
+    if user_object and pbkdf2_sha256.verify(password, user_object.password):
+        return user_object
+
+    return False
+
+def validate_email(email):
+    user_object = User.query.filter_by(email=email).first()
     if user_object: 
-        raise ValidationError("This email adress is already in use.")        
+        return user_object
+    return False    
 
 @login.user_loader
 def load_user(id):
@@ -74,59 +69,58 @@ def load_user(id):
 
 @app.route("/", methods=['GET'])
 def index():
-    return render_template("index.html", form=reg_form)
+    return render_template("index.html")
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
 
     if request.method == 'POST':
         firstName = request.form['firstName'] # The name of the input in index.html
-        firstName = request.form['lastName'] 
+        lastName = request.form['lastName'] 
         email = request.form['email']
         password = request.form['password']
-        confirm_pasword = request.form['confirm_pasword']
+        confirm_password = request.form['confirm_password']
         birthday_month = request.form['birthday_month']
         birthday_day = request.form['birthday_day'] 
         birthday_year = request.form['birthday_year']
         gender = request.form['gender']
 
-        if customer == '' or dealer == '':
-            return render_template('index.html', message='Plase enter required fields')
+        if firstName == '' or lastName == '' or email == '' or password == '' or confirm_password == '' or birthday_month == '' or birthday_day == '' or birthday_year == '' or gender == '':
+            return render_template('register.html', message='Plase enter required fields')
 
-    # Update DB if validation was successfull
-    if reg_form.validate_on_submit():
-        email = reg_form.email.data
-        password = reg_form.password.data
+        if not validate_email(email):
+            return render_template('login.html', message='Email or password is incorrect')
 
-        # Hash password
-        hashed_pswd = pbkdf2_sha256.hash(password) 
+        elif validate_email(email) and password == confirm_password and 30 >= len(password) >= 4:
+            # Hash password
+            hashed_pswd = pbkdf2_sha256.hash(password) 
 
-        # Add user to DB
-        user = User(email=email, password=hashed_pswd)
-        db.session.add(user)
-        db.session.commit()
+            # Add user to DB
+            user = User(email=email, password=hashed_pswd)
+            db.session.add(user)
+            db.session.commit()
 
-        flash('Registered succesfully. Please login.', 'success') 
-        return redirect(url_for('login'))
+            flash('Registered succesfully. Please login.', 'success') 
+            return redirect(url_for('login'))
 
-    return render_template("index.html", form=reg_form)
+    return render_template("register.html")
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
 
-    login_form = LoginForm()
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
 
-    if login_form.validate_on_submit():
-        username_email = login_form.username_email.data
-        password = login_form.password.data
-
-        user_object = User.query.filter(or_(User.username == username_email, User.email == username_email)).first()
-
-        if user_object and user_object.check_password(password):
+        user_object = valid_credentials(email, password)
+    
+        if not user_object:
+            return render_template('login.html', message='Email or password is incorrect')
+        else:
             login_user(user_object)
             return redirect(url_for('choose'))
 
-    return render_template("login.html", form=login_form)
+    return render_template("login.html")
 
 @app.route("/logout", methods=['GET'])
 def logout():
