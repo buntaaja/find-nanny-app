@@ -3,13 +3,27 @@ import MainPage from './components/MainPage.vue';
 import Register from './components/Register.vue';
 import Login from './components/Login.vue';
 
+const routes = [
+  {
+    path: '/',
+    name: 'MainPage',
+    component: MainPage,
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: Register,
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+  },
+];
+
 const router = createRouter({
   history: createWebHistory(),
-  routes: [
-    { path: '/', component: MainPage },
-    { path: '/register', component: Register },
-    { path: '/login', component: Login },
-  ],
+  routes,
 });
 
 export default router;

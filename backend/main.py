@@ -10,11 +10,13 @@ app = Flask(__name__)
 CORS(app, resources={r"/*":{'origins':"*"}})
 #CORS(app)
 
+app.config['SECRET_KEY'] = ''
+
 ENV = 'dev'
 
 if ENV == 'dev':
     app.debug = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Ajnlz8i.@localhost/find_nanny'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:.@localhost/find_nanny'
 else:
     app.debug = False
     app.config['SQLALCHEMY_DATABASE_URI'] = ''
@@ -127,7 +129,7 @@ def register():
     return jsonify(response_object), 405  # 405 Method Not Allowed status
 
 @app.route("/login", methods=['GET', 'POST'])
-def login():
+def login_route():
     response_object = {'status':'success'}
     if request.method == 'POST':
         post_data = request.get_json()
@@ -143,10 +145,13 @@ def login():
             response_object['message'] = 'Logged in.'
         
         return jsonify(response_object)
+    return jsonify(response_object)
 
 @app.route("/logout", methods=['GET'])
 def logout():
+    response_object = {'status': 'success', 'message': 'Logged out successfully.'}
     logout_user()
+    return jsonify(response_object)
 
 # Create the database tables
 with app.app_context():
