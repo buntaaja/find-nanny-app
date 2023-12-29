@@ -8,6 +8,7 @@ from passlib.hash import pbkdf2_sha256
 app = Flask(__name__)
 
 CORS(app, resources={r"/*":{'origins':"*"}})
+#CORS(app)
 
 ENV = 'dev'
 
@@ -32,7 +33,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(320), unique=True, nullable=False)
     firstName = db.Column(db.String(100), nullable=False)
     lastName = db.Column(db.String(100), nullable=False)
-    password = db.Column(db.String(30), nullable=False)
+    password = db.Column(db.Text, nullable=False)
     birthday_month = db.Column(db.Integer, nullable=False)  
     birthday_day = db.Column(db.String(10), nullable=False)    
     birthday_year = db.Column(db.Integer, nullable=False) 
@@ -60,19 +61,21 @@ def valid_credentials(email, password):
 def validate_email(email):
     user_object = User.query.filter_by(email=email).first()
     if user_object: 
-        return user_object
+        return True
     return False    
 
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
-@app.route("/register", methods=['GET', 'POST'])
+@app.route("/register", methods=['POST'])
 def register():
-    response_object = {'status':'success'}
+    response_object = {'status': 'success'}
+
     if request.method == 'POST':
         post_data = request.get_json()
-        firstName = post_data.get('firstName') # The name of the input in index.html
+        app.logger.info('Received data: %s', post_data)
+        firstName = post_data.get('firstName')
         lastName = post_data.get('lastName')
         email = post_data.get('email')
         password = post_data.get('password')
@@ -82,23 +85,46 @@ def register():
         birthday_year = post_data.get('birthday_year')
         gender = post_data.get('gender')
 
-        if firstName == '' or lastName == '' or email == '' or password == '' or confirm_password == '' or birthday_month == '' or birthday_day == '' or birthday_year == '' or gender == '':
-            response_object['message'] = "Plase enter required fields."
-            
-        if not validate_email(email):
-            response_object['message'] = 'Email or password is incorrect'
+        response_object['message'] = "An unexpected error occurred."
 
-        elif validate_email(email) and password == confirm_password and 30 >= len(password) >= 4:
-            # Hash password
-            hashed_pswd = pbkdf2_sha256.hash(password) 
+        if (
+            firstName == ''
+            or lastName == ''
+            or email == ''
+            or password == ''
+            or confirm_password == ''
+            or birthday_month == ''
+            or birthday_day == ''
+            or birthday_year == ''
+            or gender == ''
+        ):
+            response_object['message'] = "Please enter required fields."
+            return jsonify(response_object), 400  # 400 Bad Request status
 
-            # Add user to DB
-            user = User(email=email, password=hashed_pswd)
+        if validate_email(email):
+            response_object['message'] = 'Email already exists'
+            return jsonify(response_object), 409  # 409 Conflict status
+
+        if password == confirm_password and 30 >= len(password) >= 4:
+            hashed_pswd = pbkdf2_sha256.hash(password)
+            user = User(
+                email=email,
+                firstName=firstName,
+                lastName=lastName,
+                password=hashed_pswd,
+                birthday_month=birthday_month,
+                birthday_day=birthday_day,
+                birthday_year=birthday_year,
+                gender=gender,
+            )
             db.session.add(user)
             db.session.commit()
+            response_object['message'] = "Registered successfully. Now you can log in."
+            return jsonify(response_object), 200  # 200 OK status
 
-            response_object['message'] = "Registered succesfully. Now you can log in."
-        return jsonify(response_object)
+    # If it's not a POST request, provide a different response
+    response_object['message'] = "Invalid request method. Please use POST."
+    return jsonify(response_object), 405  # 405 Method Not Allowed status
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -121,6 +147,10 @@ def login():
 @app.route("/logout", methods=['GET'])
 def logout():
     logout_user()
+
+# Create the database tables
+with app.app_context():
+    db.create_all()
 
 if __name__ == "__main__":
     app.run(debug=True)

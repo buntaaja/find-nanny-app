@@ -10,6 +10,10 @@
 
         <!-- Your form -->
         <form @submit.prevent="submitForm" method="post" id="reg">
+          <!-- Alert Message -->
+          <div v-if="showMessage" class="alert alert-success" role="alert">
+            {{ message }}
+          </div>
           <!-- First name and Last name -->
           <div>
             <input type="text" name="firstName" v-model="formData.firstName" placeholder="First Name"/>
@@ -30,7 +34,7 @@
 
           <!-- Confirm Password -->
           <div>
-            <input type="password" name="confirm_pasword" v-model="formData.confirm_pswd" placeholder="Confirm Password" />
+            <input type="password" name="confirm_pasword" v-model="formData.confirm_password" placeholder="Confirm Password" />
           </div>
 
           <!-- Birthday -->
@@ -99,6 +103,7 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
   data() {
     const currentYear = new Date().getFullYear();
@@ -111,19 +116,55 @@ export default {
         lastName: '',
         email: '',
         password: '',
+        confirm_password: '',
         birthdayMonth: '',
         birthdayDay: '',
         birthdayYear: '',
         gender: ''
       },
-      years: years
+      years: years,
+      showMessage: false, // define showMessage
+      message: ''
     };
   },
   methods: {
     submitForm() {
-      // Handle form submission here
-      console.log('Form data submitted:', this.formData);
-    }
+      const payload = {
+        firstName: this.formData.firstName,
+        lastName: this.formData.lastName,
+        email: this.formData.email,
+        password: this.formData.password,
+        confirm_password: this.formData.confirm_password,
+        birthday_month: this.formData.birthdayMonth,
+        birthday_day: this.formData.birthdayDay,
+        birthday_year: this.formData.birthdayYear,
+        gender: this.formData.gender,
+    };
+      console.log('Payload:', this.formData);
+      const path = "http://localhost:5000/register";
+      axios
+        .post(path, payload, {
+          headers: {
+              'Content-Type': 'application/json',
+              // add any other headers if needed
+          },
+        })
+        .then((res) => {
+          // Set notification message
+          this.message = res.data.message;
+          // Show notification
+          this.showMessage = true;
+          // Redirect them to login page
+          this.$router.push("/login");
+        })
+        .catch((error) => {
+          console.error(error);
+          // If registration fails, show an error message
+          this.message = "Registration failed. Please try again.";
+          this.showMessage = true;
+          this.$router.push("/register");
+        });
+    },
   }
 };
 </script>
