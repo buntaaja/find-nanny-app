@@ -4,13 +4,14 @@ from flask_login import LoginManager, login_user, current_user, login_required, 
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from passlib.hash import pbkdf2_sha256
+import os
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../frontend')
 
-CORS(app, resources={r"/*":{'origins':"*"}})
+CORS(app, resources={r"/*": {'origins': "*"}}, supports_credentials=True)
 #CORS(app)
 
-app.config['SECRET_KEY'] = ''
+app.config['SECRET_KEY'] = os.urandom(24)
 
 ENV = 'dev'
 
@@ -65,6 +66,19 @@ def validate_email(email):
     if user_object: 
         return True
     return False    
+
+
+# @app.route('/', defaults={'path': ''})
+# @app.route('/<path:path>')
+# def catch_all(path):
+#     # Handle API routes here
+#     return jsonify({'status': 'error', 'message': 'API route not found'}), 404
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    # Handle all routes here
+    return render_template("index.html")
 
 @login.user_loader
 def load_user(id):
@@ -130,21 +144,21 @@ def register():
 
 @app.route("/login", methods=['GET', 'POST'])
 def login_route():
-    response_object = {'status':'success'}
+    response_object = {'status': 'error', 'message': 'Invalid email or password'}
     if request.method == 'POST':
         post_data = request.get_json()
         email = post_data.get('email')
+        print(email)
         password = post_data.get('password')
 
         user_object = valid_credentials(email, password)
+        print(user_object)
     
-        if not user_object:
-            response_object['message'] = 'Email or password is incorrect.'
-        else:
+        if user_object:
             login_user(user_object)
+            response_object['status'] = 'success'
             response_object['message'] = 'Logged in.'
         
-        return jsonify(response_object)
     return jsonify(response_object)
 
 @app.route("/logout", methods=['GET'])

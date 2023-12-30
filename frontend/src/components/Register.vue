@@ -71,7 +71,6 @@
           </div>
 
           <!-- Gender -->
-          <!-- Gender -->
           <div>
             <div>Gender</div>
             <div>
@@ -139,14 +138,13 @@ export default {
         birthday_day: this.formData.birthdayDay,
         birthday_year: this.formData.birthdayYear,
         gender: this.formData.gender,
-    };
+      };
       console.log('Payload:', this.formData);
       const path = "http://localhost:5000/register";
       axios
         .post(path, payload, {
           headers: {
               'Content-Type': 'application/json',
-              // add any other headers if needed
           },
         })
         .then((res) => {
@@ -156,6 +154,9 @@ export default {
           this.showMessage = true;
           // Redirect them to login page
           this.$router.push("/login");
+
+          // Notify MainPage component that the user has registered
+          this.$emit('userRegistered', payload);
         })
         .catch((error) => {
           console.error(error);
@@ -164,11 +165,7 @@ export default {
           this.showMessage = true;
           this.$router.push("/register");
         });
-    },
-  }
+      },
+  },
 };
 </script>
-
-<style scoped>
-/* Add your component-specific styles here */
-</style>

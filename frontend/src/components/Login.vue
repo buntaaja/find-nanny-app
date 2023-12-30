@@ -3,7 +3,6 @@
       <form @submit.prevent="submitForm" action="/login" method="post">
         <label for="username_email">Email:</label>
         <input v-model="email" type="text" id="email" />
-        
         <label for="password">Password:</label>
         <input v-model="password" type="password" id="password" />
         
@@ -14,8 +13,14 @@
   
   <script>
   import axios from 'axios';
+  import { mapStores } from 'pinia'
+  import { useAuthStore } from '../stores/auth';
+  // import ChildComponent from './path-to-your-child-component'; // Adjust the path accordingly
   
   export default {
+    computed: {
+    ...mapStores(useAuthStore)
+    },
     data() {
       return {
         email: '',
@@ -36,10 +41,8 @@
           // Check the response from the server
           if (response.data.status === 'success') {
             console.log('Logged in successfully.');
-  
-            // Use Vue Router to navigate to the main page
-            this.$router.push('/');
-  
+            // Notify MainPage component that the user has logged in
+            this.authStore.login()
           } else {
             console.error('Login failed.');
           }
