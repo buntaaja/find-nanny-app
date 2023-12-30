@@ -17,7 +17,7 @@ ENV = 'dev'
 
 if ENV == 'dev':
     app.debug = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:.@localhost/find_nanny'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Ajnlz8i.@localhost/find_nanny'
 else:
     app.debug = False
     app.config['SQLALCHEMY_DATABASE_URI'] = ''

@@ -3,7 +3,7 @@
     <div class="_reg">
       <div class="_reg2">
         <!-- Your image and title -->
-        <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yZ/r/C6QZ-pcv3Bd.png" alt="" width="24" height="24" id="x_sign" />
+        <img src="https://static.xx.fbcdn.net/rsrc.php/v3/yZ/r/C6QZ-pcv3Bd.png" alt="X Sign" width="24" height="24" id="x_sign" @click="redirectToMainPage"/>
         <div class="sign_up">
           <div class="sign_up2">Sign Up</div>
         </div>
@@ -166,6 +166,18 @@ export default {
           this.$router.push("/register");
         });
       },
+      redirectToMainPage() {
+        // Navigate to the '/' route
+        this.$router.push('/');
+    },
   },
 };
 </script>
+
+
+<style scoped>
+#x_sign {
+  /* Add styles to move the image to the right */
+  cursor: pointer;
+}
+</style>
